@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video monitoring | coh-thread</title>
+<meta name="description" content="coh-thread video monitoring: a demonstration and benchmark results, with the limits stated.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+.trace { margin: 20px 0 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.trace svg { width: 100%; height: auto; display: block; }
+.trace figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+.trace .g { stroke: var(--line); stroke-dasharray: 2 4; }
+.trace .ax { stroke: var(--muted); }
+.trace text { fill: var(--muted); font: 400 12px var(--font-mono); }
+.trace .lv { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; }
+.trace .win { fill: var(--warn-bg); }
+.trace .mk { stroke: var(--warn-line); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.trace .ml { fill: var(--warn-fg); }
+.trace .ml.acc { fill: var(--accent); font-weight: 500; }
+.trace .dot { fill: var(--surface); stroke: var(--accent); stroke-width: 2.5; }
+.stats { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 20px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.stat b { display: block; font: 800 1.7rem var(--font-display); color: var(--fg); }
+.stat span { color: var(--muted); font-size: 0.9rem; }
+tr.hl th, tr.hl td { background: var(--accent-soft); font-weight: 500; }
+tr.miss td, td.bad { color: var(--warn-fg); background: var(--warn-bg); }
+.small { font-size: 0.9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="top">
+  <a class="mark" href="index.html">coh-thread</a>
+  <span class="links">
+    <a href="library.html">Library</a>
+    <a href="monitoring.html" aria-current="page">Monitoring</a>
+    <a href="notes/index.html">Notes</a>
+    <a href="code/index.html">Code</a>
+    <a href="overview.html">Overview</a>
+    <a href="index.html#contact">Contact</a>
+  </span>
+</nav>
+<main id="main">
+<p class="eyebrow">Demonstration and benchmark</p>
+<h1>Video monitoring</h1>
+<p class="lede">A monitor that watches a camera feed frame by frame and raises one of four levels: NOMINAL, WATCH, ALARM or TRIP. It is built to catch the scene that is heading towards failure, to stay quiet through the ordinary changes that fool simple detectors, and to tell a broken camera apart from a dangerous scene.</p>
+<p class="small">This page shows what the monitor does and how well it does it. The method, the source code and the trained models are not published. Every number below was measured on synthetic video with known ground truth, not on real plant footage.</p>
+
+<div class="stats">
+  <div class="stat"><b>96%</b><span>of hazards caught on held-out clips</span></div>
+  <div class="stat"><b>0%</b><span>false alarms on scene cuts (EWMA and CUSUM: 100%)</span></div>
+  <div class="stat"><b>100%</b><span>of camera faults named as camera faults (every baseline: 0%)</span></div>
+  <div class="stat"><b>1.8 ms</b><span>median work per frame at 30 fps, on one CPU thread</span></div>
+</div>
+
+<section class="band">
+  <h2>A collapse, watched live</h2>
+  <p>A synthetic scene streamed at 30 frames per second. Part of the structure in view starts to collapse at 3.3 s and fails at 6.8 s. The monitor sees no change for the first 1.7 s of the collapse, then moves to ALARM and trips at 5.23 s, <strong>1.6 s before the failure</strong>.</p>
+  <figure class="trace"><svg viewBox="0 0 640 260" role="img" aria-labelledby="tr-t tr-d">
+<title id="tr-t">Alert level during a collapsing scene</title>
+<desc id="tr-d">The level stays NOMINAL until 5.0 s, rises to ALARM and then to TRIP at 5.23 s. The collapse began at 3.3 s and the failure happens at 6.8 s, so the trip came 1.6 s before failure.</desc>
+<rect class="win" x="302.9" y="20" width="236.3" height="180"/><line class="mk" x1="302.9" y1="20" x2="302.9" y2="200"/><text class="ml" x="298.9" y="16" text-anchor="end">collapse begins 3.3 s</text><line class="mk fail" x1="539.2" y1="20" x2="539.2" y2="200"/><text class="ml fail" x="543.2" y="16">failure 6.8 s</text><circle class="dot" cx="433.2" cy="30.0" r="5"/><text class="ml acc" x="425.2" y="52.0" text-anchor="end">trip 5.23 s</text><line class="g" x1="80" y1="200.0" x2="620" y2="200.0"/><text class="yl" x="72" y="204.0" text-anchor="end">NOMINAL</text><line class="g" x1="80" y1="143.3" x2="620" y2="143.3"/><text class="yl" x="72" y="147.3" text-anchor="end">WATCH</text><line class="g" x1="80" y1="86.7" x2="620" y2="86.7"/><text class="yl" x="72" y="90.7" text-anchor="end">ALARM</text><line class="g" x1="80" y1="30.0" x2="620" y2="30.0"/><text class="yl" x="72" y="34.0" text-anchor="end">TRIP</text><line class="ax" x1="80" y1="200" x2="620" y2="200"/><text class="xl" x="80.0" y="220" text-anchor="middle">0</text><text class="xl" x="147.5" y="220" text-anchor="middle">1</text><text class="xl" x="215.0" y="220" text-anchor="middle">2</text><text class="xl" x="282.5" y="220" text-anchor="middle">3</text><text class="xl" x="350.0" y="220" text-anchor="middle">4</text><text class="xl" x="417.5" y="220" text-anchor="middle">5</text><text class="xl" x="485.0" y="220" text-anchor="middle">6</text><text class="xl" x="552.5" y="220" text-anchor="middle">7</text><text class="xl" x="620.0" y="220" text-anchor="middle">8</text>
+<text class="xl" x="350.0" y="244" text-anchor="middle">time in the clip (s)</text>
+<polyline class="lv" points="82.2,200.0 86.8,200.0 91.2,200.0 95.8,200.0 100.2,200.0 104.8,200.0 109.2,200.0 113.8,200.0 118.2,200.0 122.8,200.0 127.2,200.0 131.8,200.0 136.2,200.0 140.8,200.0 145.2,200.0 149.8,200.0 154.2,200.0 158.8,200.0 163.2,200.0 167.8,200.0 172.2,200.0 176.8,200.0 181.2,200.0 185.8,200.0 190.2,200.0 194.8,200.0 199.2,200.0 203.8,200.0 208.2,200.0 212.8,200.0 217.2,200.0 221.8,200.0 226.3,200.0 230.8,200.0 235.3,200.0 239.8,200.0 244.3,200.0 248.8,200.0 253.2,200.0 257.8,200.0 262.2,200.0 266.8,200.0 271.2,200.0 275.8,200.0 280.2,200.0 284.8,200.0 289.2,200.0 293.8,200.0 298.2,200.0 302.8,200.0 307.2,200.0 311.8,200.0 316.2,200.0 320.8,200.0 325.2,200.0 329.8,200.0 334.2,200.0 338.8,200.0 343.2,200.0 347.8,200.0 352.2,200.0 356.8,200.0 361.2,200.0 365.8,200.0 370.2,200.0 374.8,200.0 379.2,200.0 383.8,200.0 388.2,200.0 392.8,200.0 397.2,200.0 401.8,200.0 406.2,200.0 410.8,200.0 415.2,200.0 419.8,200.0 419.8,86.7 424.2,86.7 428.8,86.7 433.2,86.7 433.2,30.0 437.8,30.0 442.3,30.0 446.8,30.0 451.2,30.0 455.8,30.0 460.2,30.0 464.8,30.0 469.2,30.0 473.8,30.0 478.2,30.0 482.8,30.0 487.2,30.0 491.8,30.0 496.2,30.0 500.8,30.0 505.2,30.0 509.8,30.0 514.2,30.0 518.8,30.0 523.2,30.0 527.8,30.0 532.2,30.0 536.8,30.0 541.2,30.0 545.8,30.0 550.2,30.0 554.8,30.0 559.2,30.0 563.8,30.0 568.2,30.0 572.8,30.0 577.2,30.0 581.8,30.0 586.2,30.0 590.8,30.0 595.2,30.0 599.8,30.0 604.2,30.0 608.8,30.0 613.2,30.0 617.8,30.0 620.0,30.0"/>
+</svg>
+  <figcaption>Alert level over time. The shaded band runs from the start of the collapse to the failure.</figcaption></figure>
+</section>
+
+<section class="band">
+  <h2>Against conventional monitors</h2>
+  <p>14 kinds of scene, 8 held-out clips of each, never used for tuning. Each baseline was tuned to a 5% false-alarm budget on separate training clips.</p>
+  <table>
+    <thead><tr><th>Monitor</th><th>Hazards caught</th><th>Median delay</th><th>Slow drift caught</th><th>False alarms, quiet scenes</th><th>False alarms, scene cuts</th><th>Camera fault noticed</th><th>Camera fault named</th></tr></thead>
+    <tbody><tr class=hl><th scope="row">coh-thread monitor</th><td>96%</td><td>1.9 s</td><td>75%</td><td>10%</td><td>0%</td><td>100%</td><td>100%</td></tr><tr><th scope="row">Motion detection</th><td>75%</td><td>2.0 s</td><td>0%</td><td>19%</td><td>0%</td><td>33%</td><td>0%</td></tr><tr><th scope="row">Background subtraction</th><td>29%</td><td>0.9 s</td><td>0%</td><td>15%</td><td>12%</td><td>67%</td><td>0%</td></tr><tr><th scope="row">EWMA</th><td>100%</td><td>1.9 s</td><td>100%</td><td>44%</td><td>100%</td><td>100%</td><td>0%</td></tr><tr><th scope="row">CUSUM</th><td>100%</td><td>2.4 s</td><td>100%</td><td>50%</td><td>100%</td><td>100%</td><td>0%</td></tr></tbody>
+  </table>
+  <p class="small">EWMA and CUSUM catch everything, but they alarm on about half the quiet scenes and on every scene cut, so an operator learns to ignore them. Motion detection and background subtraction stay quieter but miss hazards and all slow drift. None of the four can say "the camera is broken" rather than "the scene is dangerous". The coh-thread monitor's 5 false alarms on quiet scenes each come with the reason they fired, shown for review.</p>
+</section>
+
+<section class="band">
+  <h2>Scene by scene</h2>
+  <p>The highest level the monitor reached on each of the 8 held-out clips. Rows in amber did not match on every clip.</p>
+  <table>
+    <thead><tr><th>Scene</th><th>Correct response</th><th>Correct</th><th>Highest level reached</th></tr></thead>
+    <tbody><tr><th scope=row>steady</th><td>stay quiet</td><td>8 / 8</td><td>NOMINAL 8</td></tr><tr><th scope=row>pan</th><td>stay quiet</td><td>8 / 8</td><td>NOMINAL 8</td></tr><tr><th scope=row>periodic</th><td>stay quiet</td><td>8 / 8</td><td>NOMINAL 2, WATCH 6</td></tr><tr><th scope=row>scroll</th><td>stay quiet</td><td>8 / 8</td><td>WATCH 8</td></tr><tr class="miss"><th scope=row>lighting</th><td>stay quiet (lighting change)</td><td>3 / 8</td><td>WATCH 3, ALARM 3, TRIP 2</td></tr><tr><th scope=row>shake</th><td>stay quiet (camera shake)</td><td>8 / 8</td><td>WATCH 8</td></tr><tr><th scope=row>cut</th><td>note it, no alarm (scene cut)</td><td>8 / 8</td><td>WATCH 8</td></tr><tr><th scope=row>drift</th><td>WATCH or ALARM (slow drift)</td><td>8 / 8</td><td>WATCH 2, ALARM 6</td></tr><tr class="miss"><th scope=row>runaway</th><td>TRIP (runaway)</td><td>7 / 8</td><td>WATCH 1, TRIP 7</td></tr><tr><th scope=row>collapse</th><td>TRIP (collapse)</td><td>8 / 8</td><td>TRIP 8</td></tr><tr><th scope=row>explosion</th><td>TRIP (explosion)</td><td>8 / 8</td><td>TRIP 8</td></tr><tr><th scope=row>frozen</th><td>WATCH (frozen camera)</td><td>8 / 8</td><td>WATCH 8</td></tr><tr><th scope=row>blackout</th><td>WATCH (blackout)</td><td>8 / 8</td><td>WATCH 8</td></tr><tr><th scope=row>noise</th><td>WATCH (sensor noise)</td><td>8 / 8</td><td>WATCH 8</td></tr></tbody>
+  </table>
+  <p class="small">The two weak spots: a sudden lighting change pushed the monitor to TRIP on 2 of 8 clips, and one runaway clip of 8 was only flagged as WATCH. Both are open work.</p>
+</section>
+
+<section class="band">
+  <h2>Real time and frame rate</h2>
+  <p>Fed one 96&times;72 frame at a time at 30 fps, across all 14 scenes, the monitor needs 1.8 ms per frame at the median against a budget of 33 ms. Its slowest 1% of frames take up to 64 ms and the single slowest 119 ms, so it can fall a few frames behind for a moment and then catch up. Larger frames have not been measured on this page.</p>
+  <p>The same clip played at 15, 30 and 60 fps should get the same verdict. Highest level reached on one clip of each scene:</p>
+  <table>
+    <thead><tr><th>Scene</th><th>15 fps</th><th>30 fps</th><th>60 fps</th></tr></thead>
+    <tbody><tr><th scope=row>steady</th><td>NOMINAL</td><td>NOMINAL</td><td>NOMINAL</td></tr><tr><th scope=row>pan</th><td>NOMINAL</td><td>NOMINAL</td><td>NOMINAL</td></tr><tr><th scope=row>periodic</th><td>WATCH</td><td>WATCH</td><td>WATCH</td></tr><tr><th scope=row>scroll</th><td>WATCH</td><td>WATCH</td><td>WATCH</td></tr><tr><th scope=row>cut</th><td>WATCH</td><td>WATCH</td><td>WATCH</td></tr><tr><th scope=row>drift</th><td>ALARM</td><td>ALARM</td><td>WATCH</td></tr><tr><th scope=row>runaway</th><td class=bad>WATCH</td><td>TRIP</td><td>TRIP</td></tr><tr><th scope=row>collapse</th><td>TRIP</td><td>TRIP</td><td>TRIP</td></tr><tr><th scope=row>explosion</th><td>TRIP</td><td>TRIP</td><td>TRIP</td></tr><tr><th scope=row>frozen</th><td>WATCH</td><td>WATCH</td><td>WATCH</td></tr><tr><th scope=row>blackout</th><td>WATCH</td><td>WATCH</td><td>WATCH</td></tr><tr><th scope=row>noise</th><td>WATCH</td><td>WATCH</td><td>WATCH</td></tr><tr><th scope=row>lighting</th><td class=bad>ALARM</td><td class=bad>TRIP</td><td>WATCH</td></tr><tr><th scope=row>shake</th><td>WATCH</td><td>WATCH</td><td>WATCH</td></tr></tbody>
+  </table>
+  <p class="small">Amber cells are wrong verdicts. Most scenes keep their verdict at every rate. The exceptions are a runaway missed at 15 fps and a lighting change that raised an ALARM at 15 fps and tripped at 30 fps. Frame-rate independence is a goal, not yet a guarantee.</p>
+</section>
+
+<section class="band">
+  <h2>A vision-language model in the loop</h2>
+  <p>An open 2-billion-parameter vision-language model (Qwen3-VL-2B, run locally on CPU) can be asked to investigate a scene: it calls measurement tools, then gives a verdict. It advises, and it has no authority: it can raise the level to ALARM at most, and it can never lower a level or clear a trip. 28 held-out episodes:</p>
+  <table>
+    <thead><tr><th>Setup</th><th>Correct verdict</th><th>Claims backed by a measurement</th><th>Safe</th><th>Tool calls</th><th>Time per episode</th></tr></thead>
+    <tbody><tr><th scope=row>Base model</th><td>50%</td><td>0%</td><td>100%</td><td>5.1</td><td>107 s</td></tr><tr><th scope=row>Fine-tuned</th><td>68%</td><td>21%</td><td>100%</td><td>3.7</td><td>89 s</td></tr><tr><th scope=row>Base model, guarded</th><td>82%</td><td>100%</td><td>100%</td><td>2.7</td><td>77 s</td></tr><tr><th scope=row>Fine-tuned, guarded</th><td>86%</td><td>100%</td><td>100%</td><td>2.6</td><td>59 s</td></tr></tbody>
+  </table>
+  <p class="small">"Guarded" means the investigation rules are enforced, not only scored. The guard is the largest single gain: from 50% to 82% correct, with 9 episodes gained and none lost (sign test p = 0.002). Fine-tuning adds a smaller step on top, which 28 episodes cannot yet confirm (p = 0.5). At about a minute per episode, this is a second opinion beside the live monitor, not part of it.</p>
+  <p>We also asked the same model one plain question, "is the view blocked?", on 40 frames. It answered yes on all of them, blocked or not. The monitor therefore gives its answer zero weight. What an answer is worth is measured before it counts, and here it is worth nothing.</p>
+</section>
+
+<aside class="notice">
+  <h2>Read before relying on it</h2>
+  <p>All results above come from synthetic video with known ground truth. The monitor has not been validated on real footage, has no safety certification and no independent audit. The frames are small, the clip counts are small (8 per scene, 28 investigation episodes), and the weak spots in amber are real. Use it as one layer among several, never as the only barrier between a fault and a catastrophe.</p>
+</aside>
+
+<section class="band">
+  <h2>Trying it on your system</h2>
+  <p>The monitor is not released as code. If you run operations with a camera in the loop and want to see it on your footage, <a href="index.html#contact">get in touch</a>.</p>
+</section>
+</main>
+<footer>
+  <p>coh-thread &middot; a foundation for high-consequence operations &middot;
+     <a href="mailto:realsaimohanty@gmail.com">realsaimohanty@gmail.com</a></p>
+  <p>The program works only in the correct configuration of the system.</p>
+</footer>
+</body>
+</html>
