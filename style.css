@@ -173,3 +173,18 @@ dt.warn { color: var(--warn-fg); }
 .try .output { margin-top: 4px; }
 .copy { display: none; font: 500 0.8rem var(--font-body); color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 4px; padding: 3px 10px; cursor: pointer; vertical-align: middle; margin-left: 6px; }
 .js .copy { display: inline-block; }
+
+/* ---- flagships ---- */
+.hero .abstract { color: var(--fg); font-size: 0.98rem; margin-top: 8px; }
+.hero .abstract .ab { font: 500 12px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.flag-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 18px; }
+.flag { display: flex; flex-direction: column; gap: 10px; border-top: 4px solid var(--accent); padding: 20px; }
+.flag h3 { font-size: 1.35rem; margin: 0; }
+.flag h3 a { color: var(--fg); text-decoration: none; }
+.flag h3 a:hover { color: var(--accent); }
+.flag .role { font: 400 12px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.flag-stats { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.flag-stats li { padding-left: 12px; border-left: 2px solid var(--line); max-width: none; font-size: 0.95rem; }
+.flag-stats b { font-family: var(--font-display); color: var(--accent); }
+.flag .small { font-size: 0.85rem; color: var(--muted); }
+.flag p:last-child { margin-top: auto; }

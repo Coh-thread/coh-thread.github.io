@@ -8,6 +8,42 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="style.css">
 <style>
+
+:root { --danger: #c2362b; --danger-fg: #ffffff; --danger-soft: rgba(194, 54, 43, 0.22); --danger-text: #a52a20; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --danger: #ff6b5e; --danger-fg: #2a0905; --danger-soft: rgba(255, 107, 94, 0.25); --danger-text: #ff8a80; } }
+:root[data-theme="dark"] { --danger: #ff6b5e; --danger-fg: #2a0905; --danger-soft: rgba(255, 107, 94, 0.25); --danger-text: #ff8a80; }
+
+.rp { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 18px; box-shadow: 0 6px 24px var(--shadow); }
+.rp-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.rp-tabs button { font: 500 0.9rem var(--font-body); padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.rp-tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.rp-body { display: grid; gap: 14px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+@media (max-width: 640px) { .rp-body { grid-template-columns: 1fr; } }
+.rp-view { position: relative; }
+.rp-view canvas { width: 100%; height: auto; display: block; border-radius: 6px; image-rendering: pixelated; background: #000; }
+.rp-hud { position: absolute; left: 8px; right: 8px; top: 8px; display: flex; justify-content: space-between; font: 500 12px var(--font-mono); color: #fff; text-shadow: 0 1px 3px #000; pointer-events: none; }
+.rp-count { color: #ffd479; }
+.rp-label { font: 400 11px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.rp-level { font: 800 2rem var(--font-display); padding: 8px 14px; border-radius: 8px; border: 2px solid var(--line); color: var(--muted); transition: background .15s, color .15s, border-color .15s; }
+.rp-level[data-l="1"] { color: var(--fg); border-color: var(--fg); }
+.rp-level[data-l="2"] { color: var(--warn-fg); background: var(--warn-bg); border-color: var(--warn-line); }
+.rp-level[data-l="3"] { color: var(--danger-fg); background: var(--danger); border-color: var(--danger); }
+.rp-why { min-height: 2.8em; margin: 6px 0 14px; font-size: 0.92rem; }
+.rp-base { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.rp-base li { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 8px; font-size: 0.9rem; max-width: none; }
+.rp-base .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.rp-base .bs { font: 400 12px var(--font-mono); color: var(--muted); }
+.rp-base li.on .dot { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
+.rp-base li.on .bs { color: var(--danger-text); font-weight: 500; }
+.rp-bar { position: relative; margin-top: 14px; }
+.rp-strip { width: 100%; height: 40px; display: block; border-radius: 4px; background: var(--bg); }
+.rp-scrub { position: absolute; inset: 0; width: 100%; height: 40px; margin: 0; opacity: 0; cursor: pointer; }
+.rp-ctl { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+.rp-ctl .btn { cursor: pointer; font: 500 0.95rem var(--font-body); min-width: 84px; }
+.rp-setup { margin: 0; color: var(--muted); font-size: 0.92rem; flex: 1 1 240px; }
+.rp-verdict { margin: 12px 0 0; padding: 10px 14px; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 4px; min-height: 1.6em; }
+.rp-verdict:empty { visibility: hidden; }
+
 .trace { margin: 20px 0 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
 .trace svg { width: 100%; height: auto; display: block; }
 .trace figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
@@ -55,18 +91,32 @@ tr.miss td, td.bad { color: var(--warn-fg); background: var(--warn-bg); }
   <div class="stat"><b>1.8 ms</b><span>median work per frame at 30 fps, on one CPU thread</span></div>
 </div>
 
-<section class="band">
-  <h2>A collapse, watched live</h2>
-  <p>A synthetic scene streamed at 30 frames per second. Part of the structure in view starts to collapse at 3.3 s and fails at 6.8 s. The monitor sees no change for the first 1.7 s of the collapse, then moves to ALARM and trips at 5.23 s, <strong>1.6 s before the failure</strong>.</p>
-  <figure class="trace"><svg viewBox="0 0 640 260" role="img" aria-labelledby="tr-t tr-d">
-<title id="tr-t">Alert level during a collapsing scene</title>
-<desc id="tr-d">The level stays NOMINAL until 5.0 s, rises to ALARM and then to TRIP at 5.23 s. The collapse began at 3.3 s and the failure happens at 6.8 s, so the trip came 1.6 s before failure.</desc>
-<rect class="win" x="302.9" y="20" width="236.3" height="180"/><line class="mk" x1="302.9" y1="20" x2="302.9" y2="200"/><text class="ml" x="298.9" y="16" text-anchor="end">collapse begins 3.3 s</text><line class="mk fail" x1="539.2" y1="20" x2="539.2" y2="200"/><text class="ml fail" x="543.2" y="16">failure 6.8 s</text><circle class="dot" cx="433.2" cy="30.0" r="5"/><text class="ml acc" x="425.2" y="52.0" text-anchor="end">trip 5.23 s</text><line class="g" x1="80" y1="200.0" x2="620" y2="200.0"/><text class="yl" x="72" y="204.0" text-anchor="end">NOMINAL</text><line class="g" x1="80" y1="143.3" x2="620" y2="143.3"/><text class="yl" x="72" y="147.3" text-anchor="end">WATCH</text><line class="g" x1="80" y1="86.7" x2="620" y2="86.7"/><text class="yl" x="72" y="90.7" text-anchor="end">ALARM</text><line class="g" x1="80" y1="30.0" x2="620" y2="30.0"/><text class="yl" x="72" y="34.0" text-anchor="end">TRIP</text><line class="ax" x1="80" y1="200" x2="620" y2="200"/><text class="xl" x="80.0" y="220" text-anchor="middle">0</text><text class="xl" x="147.5" y="220" text-anchor="middle">1</text><text class="xl" x="215.0" y="220" text-anchor="middle">2</text><text class="xl" x="282.5" y="220" text-anchor="middle">3</text><text class="xl" x="350.0" y="220" text-anchor="middle">4</text><text class="xl" x="417.5" y="220" text-anchor="middle">5</text><text class="xl" x="485.0" y="220" text-anchor="middle">6</text><text class="xl" x="552.5" y="220" text-anchor="middle">7</text><text class="xl" x="620.0" y="220" text-anchor="middle">8</text>
-<text class="xl" x="350.0" y="244" text-anchor="middle">time in the clip (s)</text>
-<polyline class="lv" points="82.2,200.0 86.8,200.0 91.2,200.0 95.8,200.0 100.2,200.0 104.8,200.0 109.2,200.0 113.8,200.0 118.2,200.0 122.8,200.0 127.2,200.0 131.8,200.0 136.2,200.0 140.8,200.0 145.2,200.0 149.8,200.0 154.2,200.0 158.8,200.0 163.2,200.0 167.8,200.0 172.2,200.0 176.8,200.0 181.2,200.0 185.8,200.0 190.2,200.0 194.8,200.0 199.2,200.0 203.8,200.0 208.2,200.0 212.8,200.0 217.2,200.0 221.8,200.0 226.3,200.0 230.8,200.0 235.3,200.0 239.8,200.0 244.3,200.0 248.8,200.0 253.2,200.0 257.8,200.0 262.2,200.0 266.8,200.0 271.2,200.0 275.8,200.0 280.2,200.0 284.8,200.0 289.2,200.0 293.8,200.0 298.2,200.0 302.8,200.0 307.2,200.0 311.8,200.0 316.2,200.0 320.8,200.0 325.2,200.0 329.8,200.0 334.2,200.0 338.8,200.0 343.2,200.0 347.8,200.0 352.2,200.0 356.8,200.0 361.2,200.0 365.8,200.0 370.2,200.0 374.8,200.0 379.2,200.0 383.8,200.0 388.2,200.0 392.8,200.0 397.2,200.0 401.8,200.0 406.2,200.0 410.8,200.0 415.2,200.0 419.8,200.0 419.8,86.7 424.2,86.7 428.8,86.7 433.2,86.7 433.2,30.0 437.8,30.0 442.3,30.0 446.8,30.0 451.2,30.0 455.8,30.0 460.2,30.0 464.8,30.0 469.2,30.0 473.8,30.0 478.2,30.0 482.8,30.0 487.2,30.0 491.8,30.0 496.2,30.0 500.8,30.0 505.2,30.0 509.8,30.0 514.2,30.0 518.8,30.0 523.2,30.0 527.8,30.0 532.2,30.0 536.8,30.0 541.2,30.0 545.8,30.0 550.2,30.0 554.8,30.0 559.2,30.0 563.8,30.0 568.2,30.0 572.8,30.0 577.2,30.0 581.8,30.0 586.2,30.0 590.8,30.0 595.2,30.0 599.8,30.0 604.2,30.0 608.8,30.0 613.2,30.0 617.8,30.0 620.0,30.0"/>
-</svg>
-  <figcaption>Alert level over time. The shaded band runs from the start of the collapse to the failure.</figcaption></figure>
+
+<section class="band" id="replay">
+  <h2>Watch it decide</h2>
+  <p>Three held-out clips, replayed frame by frame exactly as the monitors saw them. On the right is what coh-thread reported at each moment, and below that four conventional monitors, each tuned to a 5% false-alarm budget.</p>
+  <div class="rp" data-fps="15">
+    <div class="rp-tabs" role="tablist" aria-label="Scene"><button type="button" role="tab" data-scene="collapse" aria-selected="true">Collapse</button><button type="button" role="tab" data-scene="cut" aria-selected="false">Scene cut</button><button type="button" role="tab" data-scene="blackout" aria-selected="false">Camera blackout</button></div>
+    <div class="rp-body">
+      <div class="rp-view">
+        <canvas width="384" height="288" aria-label="Replay of the clip"></canvas>
+        <div class="rp-hud"><span class="rp-time">0.0 s</span><span class="rp-count"></span></div>
+      </div>
+      <div class="rp-side">
+        <p class="rp-label">coh-thread</p>
+        <div class="rp-level" data-l="0">NOMINAL</div>
+        <p class="rp-why">&nbsp;</p>
+        <p class="rp-label">Conventional monitors</p>
+        <ul class="rp-base"><li data-b="ewma"><span class="dot"></span><span class="bn">EWMA</span><span class="bs">quiet</span></li><li data-b="cusum"><span class="dot"></span><span class="bn">CUSUM</span><span class="bs">quiet</span></li><li data-b="vmd"><span class="dot"></span><span class="bn">Motion detection</span><span class="bs">quiet</span></li><li data-b="background"><span class="dot"></span><span class="bn">Background subtraction</span><span class="bs">quiet</span></li></ul>
+      </div>
+    </div>
+    <div class="rp-bar"><svg class="rp-strip" viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <input class="rp-scrub" type="range" min="0" max="119" value="0" step="1" aria-label="Position in the clip"></div>
+    <div class="rp-ctl"><button type="button" class="btn rp-play">Play</button><p class="rp-setup"></p></div>
+    <p class="rp-verdict" aria-live="polite"></p>
+  </div>
 </section>
+
 
 <section class="band">
   <h2>Against conventional monitors</h2>
@@ -125,5 +175,67 @@ tr.miss td, td.bad { color: var(--warn-fg); background: var(--warn-bg); }
      <a href="mailto:realsaimohanty@gmail.com">realsaimohanty@gmail.com</a></p>
   <p>The program works only in the correct configuration of the system.</p>
 </footer>
+<script>
+(function () {
+  var D = {"collapse":{"title":"Collapse","setup":"Part of the structure gives way and fails at 6.3 s.","verdict":"coh-thread tripped at 5.4 s, 0.9 s before the failure, and named it a hazard. EWMA alarmed at the same moment and CUSUM later. Background subtraction never fired. On this clip the alarm itself is not what sets the monitor apart. Switch to the other two scenes to see the difference.","fps":15.0,"n":120,"levels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],"times":[0.0,0.067,0.133,0.2,0.267,0.333,0.4,0.467,0.533,0.6,0.667,0.733,0.8,0.867,0.933,1.0,1.067,1.133,1.2,1.267,1.333,1.4,1.467,1.533,1.6,1.667,1.733,1.8,1.867,1.933,2.0,2.067,2.133,2.2,2.267,2.333,2.4,2.467,2.533,2.6,2.667,2.733,2.8,2.867,2.933,3.0,3.067,3.133,3.2,3.267,3.333,3.4,3.467,3.533,3.6,3.667,3.733,3.8,3.867,3.933,4.0,4.067,4.133,4.2,4.267,4.333,4.4,4.467,4.533,4.6,4.667,4.733,4.8,4.867,4.933,5.0,5.067,5.133,5.2,5.267,5.333,5.4,5.467,5.533,5.6,5.667,5.733,5.8,5.867,5.933,6.0,6.067,6.133,6.2,6.267,6.333,6.4,6.467,6.533,6.6,6.667,6.733,6.8,6.867,6.933,7.0,7.067,7.133,7.2,7.267,7.333,7.4,7.467,7.533,7.6,7.667,7.733,7.8,7.867,7.933],"onset":2.831559783664141,"tfail":6.331559783664141,"events":[{"t":5.4,"level":"TRIP","label":"Hazard in the scene"},{"t":5.4,"level":"TRIP","label":"Hazard in the scene"}],"base":{"ewma":5.4,"cusum":5.8,"vmd":6.066666666666666,"background":null},"hazard":true},"cut":{"title":"Scene cut","setup":"The camera switches to another view at 2.5 s. Nothing in the plant changes.","verdict":"Nothing is wrong, yet EWMA and CUSUM both raised an alarm within one frame of the cut. coh-thread logged an integrity event at WATCH, re-baselined, and was back at NOMINAL by 4.6 s.","fps":15.0,"n":120,"levels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"times":[0.0,0.067,0.133,0.2,0.267,0.333,0.4,0.467,0.533,0.6,0.667,0.733,0.8,0.867,0.933,1.0,1.067,1.133,1.2,1.267,1.333,1.4,1.467,1.533,1.6,1.667,1.733,1.8,1.867,1.933,2.0,2.067,2.133,2.2,2.267,2.333,2.4,2.467,2.533,2.6,2.667,2.733,2.8,2.867,2.933,3.0,3.067,3.133,3.2,3.267,3.333,3.4,3.467,3.533,3.6,3.667,3.733,3.8,3.867,3.933,4.0,4.067,4.133,4.2,4.267,4.333,4.4,4.467,4.533,4.6,4.667,4.733,4.8,4.867,4.933,5.0,5.067,5.133,5.2,5.267,5.333,5.4,5.467,5.533,5.6,5.667,5.733,5.8,5.867,5.933,6.0,6.067,6.133,6.2,6.267,6.333,6.4,6.467,6.533,6.6,6.667,6.733,6.8,6.867,6.933,7.0,7.067,7.133,7.2,7.267,7.333,7.4,7.467,7.533,7.6,7.667,7.733,7.8,7.867,7.933],"onset":2.5196888264481823,"tfail":null,"events":[{"t":2.53,"level":"WATCH","label":"Camera integrity, not a hazard"},{"t":4.6,"level":"NOMINAL","label":""}],"base":{"ewma":2.533333333333333,"cusum":2.533333333333333,"vmd":null,"background":null},"hazard":false},"blackout":{"title":"Camera blackout","setup":"The camera loses its picture at 2.4 s.","verdict":"Three of the four conventional monitors alarmed, and none of them can say why. coh-thread flagged the camera, not the scene: an operator learns the feed is down, not that the plant is in danger.","fps":15.0,"n":120,"levels":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"times":[0.0,0.067,0.133,0.2,0.267,0.333,0.4,0.467,0.533,0.6,0.667,0.733,0.8,0.867,0.933,1.0,1.067,1.133,1.2,1.267,1.333,1.4,1.467,1.533,1.6,1.667,1.733,1.8,1.867,1.933,2.0,2.067,2.133,2.2,2.267,2.333,2.4,2.467,2.533,2.6,2.667,2.733,2.8,2.867,2.933,3.0,3.067,3.133,3.2,3.267,3.333,3.4,3.467,3.533,3.6,3.667,3.733,3.8,3.867,3.933,4.0,4.067,4.133,4.2,4.267,4.333,4.4,4.467,4.533,4.6,4.667,4.733,4.8,4.867,4.933,5.0,5.067,5.133,5.2,5.267,5.333,5.4,5.467,5.533,5.6,5.667,5.733,5.8,5.867,5.933,6.0,6.067,6.133,6.2,6.267,6.333,6.4,6.467,6.533,6.6,6.667,6.733,6.8,6.867,6.933,7.0,7.067,7.133,7.2,7.267,7.333,7.4,7.467,7.533,7.6,7.667,7.733,7.8,7.867,7.933],"onset":2.4420797115521884,"tfail":null,"events":[{"t":2.47,"level":"WATCH","label":"Camera integrity, not a hazard"}],"base":{"ewma":2.466666666666667,"cusum":2.466666666666667,"vmd":null,"background":2.7333333333333334},"hazard":false}}, root = document.querySelector('.rp'); if (!root) return;
+  var cv = root.querySelector('canvas'), cx = cv.getContext('2d'), lvl = root.querySelector('.rp-level'),
+      why = root.querySelector('.rp-why'), tEl = root.querySelector('.rp-time'), cnt = root.querySelector('.rp-count'),
+      scrub = root.querySelector('.rp-scrub'), play = root.querySelector('.rp-play'), strip = root.querySelector('.rp-strip'),
+      setup = root.querySelector('.rp-setup'), verdict = root.querySelector('.rp-verdict'),
+      NAMES = ['NOMINAL', 'WATCH', 'ALARM', 'TRIP'], imgs = {}, S, key, i = 0, timer = null;
+  cx.imageSmoothingEnabled = false;
+  function img(k) { if (!imgs[k]) { imgs[k] = new Image(); imgs[k].onload = function () { if (k === key) draw(); }; imgs[k].src = 'media/' + k + '.jpg'; } return imgs[k]; }
+  function label(t) { var s = ''; S.events.forEach(function (e) { if (e.t <= t + 1e-6) s = e.label; }); return s; }
+  function css(v) { return getComputedStyle(root).getPropertyValue(v).trim(); }
+  function buildStrip() {
+    var n = S.n, w = 1000 / n, h = '', col = [css('--line'), css('--muted'), css('--warn-line'), css('--danger')];
+    for (var j = 0; j < n; j++) h += '<rect x="' + (j * w).toFixed(2) + '" y="' + (32 - 8 * S.levels[j]) + '" width="' + (w + 0.4).toFixed(2) + '" height="' + (8 + 8 * S.levels[j]) + '" fill="' + col[S.levels[j]] + '"/>';
+    var T = S.n / S.fps, X = function (t) { return (1000 * t / T).toFixed(1); };
+    if (S.onset != null) h += '<line x1="' + X(S.onset) + '" x2="' + X(S.onset) + '" y1="0" y2="40" stroke="' + css('--warn-line') + '" stroke-width="2" stroke-dasharray="4 3"/>';
+    if (S.tfail != null) h += '<line x1="' + X(S.tfail) + '" x2="' + X(S.tfail) + '" y1="0" y2="40" stroke="' + css('--danger') + '" stroke-width="3"/>';
+    h += '<rect class="ph" x="0" y="0" width="2" height="40" fill="' + css('--fg') + '"/>';
+    strip.innerHTML = h;
+  }
+  function draw() {
+    var t = S.times[i] != null ? S.times[i] : i / S.fps, im = img(key), l = S.levels[i] || 0;
+    if (im.complete && im.naturalWidth) { var c = i % 12, r = Math.floor(i / 12); cx.drawImage(im, c * 96, r * 72, 96, 72, 0, 0, 384, 288); }
+    if (l === 3) { cx.strokeStyle = css('--danger'); cx.lineWidth = 8; cx.strokeRect(4, 4, 376, 280); }
+    tEl.textContent = t.toFixed(1) + ' s';
+    cnt.textContent = S.tfail != null ? (t < S.tfail ? 'failure in ' + (S.tfail - t).toFixed(1) + ' s' : 'failed') : '';
+    lvl.textContent = NAMES[l]; lvl.setAttribute('data-l', l);
+    why.textContent = label(t) || (l ? '' : 'No change that matters');
+    root.querySelectorAll('.rp-base li').forEach(function (li) {
+      var a = S.base[li.getAttribute('data-b')], on = a != null && t >= a - 1e-6;
+      li.classList.toggle('on', on);
+      li.querySelector('.bs').textContent = on ? 'ALARM ' + a.toFixed(1) + ' s' : 'quiet';
+    });
+    var ph = strip.querySelector('.ph'); if (ph) ph.setAttribute('x', (1000 * i / S.n).toFixed(1));
+    scrub.value = i;
+    verdict.textContent = i >= S.n - 1 ? S.verdict : '';
+  }
+  function stop() { clearInterval(timer); timer = null; play.textContent = S && i >= S.n - 1 ? 'Replay' : 'Play'; }
+  function start() {
+    if (i >= S.n - 1) i = 0;
+    play.textContent = 'Pause';
+    timer = setInterval(function () { i++; if (i >= S.n - 1) { i = S.n - 1; draw(); stop(); } else draw(); }, 1000 / S.fps);
+  }
+  function pick(k) {
+    stop(); key = k; S = D[k]; i = 0; scrub.max = S.n - 1; setup.textContent = S.setup;
+    root.querySelectorAll('[role=tab]').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-scene') === k); });
+    buildStrip(); draw(); play.textContent = 'Play';
+  }
+  root.querySelectorAll('[role=tab]').forEach(function (b) { b.addEventListener('click', function () { pick(b.getAttribute('data-scene')); start(); }); });
+  play.addEventListener('click', function () { timer ? stop() : start(); });
+  scrub.addEventListener('input', function () { stop(); i = +scrub.value; draw(); });
+  Object.keys(D).forEach(img);
+  pick('collapse');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    var seen = false, io = new IntersectionObserver(function (es) { if (!seen && es[0].isIntersecting) { seen = true; start(); io.disconnect(); } }, { threshold: 0.5 });
+    io.observe(root);
+  }
+  if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { buildStrip(); draw(); });
+})();
+</script>
 </body>
 </html>

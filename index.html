@@ -28,11 +28,11 @@
   <div class="hero-text">
     <p class="eyebrow">A foundation for high-consequence operations</p>
     <h1>coh-thread</h1>
-    <p class="lede">Terminal functions for high-operation and catastrophe-prevention environments: estimation, stability checks, command limits and monitors that you can call from a terminal or a script.</p>
-    <p class="sub">Written to say plainly what each function does, why it matters when failure is costly, and where it stops.</p>
+    <p class="lede"><strong>Early warning of collapse, and collapse prevention for control systems, with proofs where the mathematics allows.</strong></p>
+    <p class="sub abstract"><span class="ab">Abstract.</span> Collapse in a high-consequence system rarely arrives without warning. The warning is buried in sensors that also drift, freeze and get fooled. coh-thread works on both halves of the problem. It detects a collapse in progress from camera and telemetry streams, tells a dangerous trend apart from a broken sensor or an ordinary disturbance, and trips before the failure. And it keeps controllers away from collapse: stability certificates that refuse to certify an unstable system, command limits that hold by construction, and optimal manoeuvres with their conditions written down. Where a property is proved, it says so. Where it is only tested in simulation, it says that too.</p>
     <p class="actions">
-      <a class="btn" href="library.html">Browse the library</a>
-      <a class="btn ghost" href="#contact">Customization &amp; contact</a>
+      <a class="btn" href="monitoring.html">Watch the demonstration</a>
+      <a class="btn ghost" href="#flagships">The two flagships</a>
     </p>
   </div>
   <figure class="hero-fig">
@@ -52,6 +52,36 @@
 </svg>
     <figcaption>A small example of the approach. <code>|x|</code> has a corner where the slope is undefined. <code>smooth_abs</code> stays within <code>eps</code> of it and has a slope everywhere.</figcaption>
   </figure>
+</section>
+
+<section class="band flagships" id="flagships">
+  <h2>Two flagships</h2>
+  <div class="flag-grid">
+    <article class="card flag">
+      <p class="role">Detect &middot; <span class="tag now">Demonstrated</span></p>
+      <h3><a href="monitoring.html">Collapse foresight</a></h3>
+      <p>Watches a camera feed or plant telemetry and trips before a collapsing or runaway scene fails, while staying quiet through scene cuts, camera faults and ordinary motion.</p>
+      <ul class="flag-stats">
+        <li><b>96%</b> of hazards caught on held-out clips</li>
+        <li><b>0%</b> false alarms on scene cuts, where EWMA and CUSUM alarm every time</li>
+        <li><b>100%</b> of camera faults named as camera faults, where no conventional monitor can</li>
+      </ul>
+      <p class="small">Measured on synthetic video. Forecasting how long remains before a collapse is still research. The monitor is not released as code.</p>
+      <p><a class="btn" href="monitoring.html">Watch it decide</a></p>
+    </article>
+    <article class="card flag">
+      <p class="role">Prevent &middot; <span class="tag now">Available</span></p>
+      <h3><a href="library.html">Collapse prevention with proofs</a></h3>
+      <p>Control tools that keep a system inside its safe region and state exactly what they guarantee.</p>
+      <ul class="flag-stats">
+        <li><b>Certify:</b> Lyapunov certificates that refuse an unstable system instead of returning a false one</li>
+        <li><b>Bound:</b> command limits and barrier controls that cannot leave their limits, by construction</li>
+        <li><b>Plan:</b> optimal manoeuvres, on SO(3) as well, from Pontryagin's conditions, which fail loudly if they do not converge</li>
+      </ul>
+      <p class="small">Proof and simulation evidence are labelled separately in every entry. The source and 10 theory notes are readable on this site.</p>
+      <p><a class="btn ghost" href="library.html">Browse the library</a></p>
+    </article>
+  </div>
 </section>
 
 <section class="band" id="mission">
