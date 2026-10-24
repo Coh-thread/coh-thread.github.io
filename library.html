@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Library | coh-thread</title>
+<title>Library | Coherent Thread</title>
 <meta name="description" content="34 control, estimation and monitoring functions for high-consequence operations, each with what it does, why it matters and where it stops.">
 <script>document.documentElement.className += " js";</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -12,7 +12,7 @@
 <body class="wide">
 <a class="skip" href="#main">Skip to content</a>
 <nav class="top">
-  <a class="mark" href="index.html">coh-thread</a>
+  <a class="mark" href="index.html">Coherent Thread</a>
   <span class="links">
     <a href="library.html">Library</a>
     <a href="monitoring.html">Monitoring</a>
@@ -67,7 +67,7 @@
   <div class="tip" id="tip-KalmanFilter">
     <dl>
       <dt>What it does</dt><dd>Tracks a state mean <code>x</code> and covariance <code>P</code> for a linear model. <code>predict</code> moves them forward one step; <code>update</code> folds in a measurement and returns the innovation <code>y</code> and its covariance <code>S</code>.</dd>
-      <dt>Why it matters</dt><dd>Every later decision trusts the estimate, so its stated uncertainty has to be honest. The covariance update uses the Joseph form and is re-symmetrised, which resists the rounding errors that can leave a covariance asymmetric or not positive semi-definite.</dd>
+      <dt>Why it matters</dt><dd>Every later decision trusts the estimate, so its stated uncertainty must be accurate. The covariance update uses the Joseph form and is re-symmetrised, which resists the rounding errors that can leave a covariance asymmetric or not positive semi-definite.</dd>
       <dt class="warn">Where it stops</dt><dd class="warn">It does not raise an alarm when it is wrong. Compute NIS from the returned <code>y</code> and <code>S</code> and act when it leaves its expected range. Assumes the model and the noise levels are right.</dd>
     </dl>
     <div class="tip-foot">
@@ -132,7 +132,7 @@ print(round(nis, 3), nis &lt; 6.63)         # 6.63 = 99% chi-square gate, 1 degr
   <p class="role">Certify</p>
   <h2 id="h-lyapunov">Show the system settles, or find where it does not</h2>
   <p class="mod"><code>control.lyapunov</code> &middot; <a href="code/lyapunov.html">read the module</a></p>
-  <p class="group-intro">Tools for the question &quot;does it settle?&quot; A Lyapunov function is a measure of distance from the safe state that must shrink along every trajectory. If you can write one down and check it, you have a reason to expect recovery, not just a plot where it happened to recover.</p>
+  <p class="group-intro">Tools for the question &quot;does it settle?&quot; A Lyapunov function is a measure of distance from the safe state that must shrink along every trajectory. If you can write one down and check it, you have a reason to expect recovery, not only a plot in which it happened to recover.</p>
   <ul class="fns">
 <li class="fn" id="fn-is_hurwitz">
   <div class="fn-row">
@@ -205,7 +205,7 @@ print(round(nis, 3), nis &lt; 6.63)         # 6.63 = 99% chi-square gate, 1 degr
   <div class="tip" id="tip-check_vdot_negative">
     <dl>
       <dt>What it does</dt><dd>Evaluates <code>V̇ = ∇V · f</code> at each sample point (skipping the origin) and returns <code>(ok, worst_value, worst_point)</code>.</dd>
-      <dt>Why it matters</dt><dd>A cheap, honest way to attack a Lyapunov argument. If the claim is wrong this tends to find where, and it names the worst point so you can look at it.</dd>
+      <dt>Why it matters</dt><dd>An inexpensive test of a Lyapunov argument. If the claim is wrong this tends to find where, and it names the worst point so you can look at it.</dd>
       <dt class="warn">Where it stops</dt><dd class="warn">Falsification, not proof. Passing means no violation was found at the points you sampled, and nothing more. Sample near the edge of the region you care about.</dd>
     </dl>
     <div class="tip-foot">
@@ -247,7 +247,7 @@ print(ok, worst &lt; 0)   # &quot;no violation found in these samples&quot;, not
 True True</code></pre></details>
 </section><section class="group" id="mod-so3" aria-labelledby="h-so3">
   <p class="role">Orient</p>
-  <h2 id="h-so3">Rotations without the usual traps</h2>
+  <h2 id="h-so3">Rotations without singularities or drift</h2>
   <p class="mod"><code>control.so3</code> &middot; <a href="code/so3.html">read the module</a></p>
   <p class="group-intro">Orientation as 3×3 rotation matrices: no gimbal lock as with Euler angles, no double cover as with quaternions. These are the shared building blocks of the geometric controllers.</p>
   <ul class="fns">
@@ -283,7 +283,7 @@ True True</code></pre></details>
     <dl>
       <dt>What it does</dt><dd>Reads the 3-vector back out of a skew-symmetric matrix.</dd>
       <dt>Why it matters</dt><dd>Lets an error measured as a matrix, such as <code>RdᵀR - RᵀRd</code>, become a vector that can drive a torque command.</dd>
-      <dt class="warn">Where it stops</dt><dd class="warn">It reads the entries without checking that the matrix really is skew-symmetric.</dd>
+      <dt class="warn">Where it stops</dt><dd class="warn">It reads the entries without checking that the matrix is skew-symmetric.</dd>
     </dl>
     <div class="tip-foot">
       <a class="tip-src" href="code/so3.html#def-vee">Read the source</a>
@@ -543,7 +543,7 @@ print(round(float(log[0, 1]), 2), float(log[-1, 1]) &lt; 1e-6)   # error Psi: st
       <button type="button" class="fn-name" aria-expanded="false" aria-controls="tip-bump_step">bump_step</button><code class="fn-args">(s)</code>
       <span class="fn-kind">function</span>
     </div>
-    <p class="fn-brief">A perfectly smooth 0-to-1 ramp.</p>
+    <p class="fn-brief">An infinitely differentiable ramp from 0 to 1.</p>
   </div>
   <div class="tip" id="tip-bump_step">
     <dl>
@@ -865,7 +865,7 @@ print(ext.residual &lt; 1e-6, float(np.ptp(ext.H)) &lt; 1e-6)        # met the t
 </aside>
 </main>
 <footer>
-  <p>coh-thread &middot; a foundation for high-consequence operations &middot;
+  <p>Coherent Thread &middot; a foundation for high-consequence operations &middot;
      <a href="mailto:realsaimohanty@gmail.com">realsaimohanty@gmail.com</a> &middot; <a href="code/index.html">read the source</a></p>
   <p>The program works only in the correct configuration of the system.</p>
 </footer>
